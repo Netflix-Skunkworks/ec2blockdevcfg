@@ -1,0 +1,43 @@
+# Copyright (C) 2006-2016 Amazon.com, Inc. or its affiliates.
+# All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+#
+#    http://aws.amazon.com/apache2.0/
+#
+# or in the "license" file accompanying this file. This file is
+# distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS
+# OF ANY KIND, either express or implied. See the License for the
+# specific language governing permissions and limitations under the
+# License.
+
+# Modified by Netflix to include additional aliases and account for instance store devices.
+
+#nvme-ns-* devices
+KERNEL=="nvme[0-9]*n[0-9]*", ENV{DEVTYPE}=="disk", ATTRS{serial}=="?*", ATTRS{model}=="?*", SYMLINK+="disk/by-id/nvme-$attr{model}_$attr{serial}-ns-%n", OPTIONS+="string_escape=replace"
+
+#nvme partitions
+KERNEL=="nvme[0-9]*n[0-9]*p[0-9]*", ENV{DEVTYPE}=="partition", ATTRS{serial}=="?*", ATTRS{model}=="?*",  IMPORT{program}="ec2nvme-nsid %k"
+KERNEL=="nvme[0-9]*n[0-9]*p[0-9]*", ENV{DEVTYPE}=="partition", ATTRS{serial}=="?*", ATTRS{model}=="?*",  ENV{_NS_ID}=="?*", SYMLINK+="disk/by-id/nvme-$attr{model}_$attr{serial}-ns-$env{_NS_ID}-part%n", OPTIONS+="string_escape=replace"
+
+
+# ebs nvme devices
+KERNEL=="nvme[0-9]*n[0-9]*", ENV{DEVTYPE}=="disk", ATTRS{model}=="Amazon Elastic Block Store", IMPORT{program}="ec2nvme-id -u %k"
+KERNEL=="nvme[0-9]*n[0-9]*", ENV{DEVTYPE}=="disk", ATTRS{model}=="Amazon Elastic Block Store", ENV{_EBS_ALIAS_SD}=="?*", SYMLINK+="$env{_EBS_ALIAS_SD}"
+KERNEL=="nvme[0-9]*n[0-9]*", ENV{DEVTYPE}=="disk", ATTRS{model}=="Amazon Elastic Block Store", ENV{_EBS_ALIAS_XVD}=="?*", SYMLINK+="$env{_EBS_ALIAS_XVD}"
+
+# ebs nvme device partitions
+KERNEL=="nvme[0-9]*n[0-9]*p[0-9]*", ENV{DEVTYPE}=="partition", ATTRS{model}=="Amazon Elastic Block Store", IMPORT{program}="ec2nvme-id -u /dev/%k"
+KERNEL=="nvme[0-9]*n[0-9]*p[0-9]*", ENV{DEVTYPE}=="partition", ATTRS{model}=="Amazon Elastic Block Store", ENV{_EBS_ALIAS_SD}=="?*", SYMLINK+="$env{_EBS_ALIAS_SD}%n"
+KERNEL=="nvme[0-9]*n[0-9]*p[0-9]*", ENV{DEVTYPE}=="partition", ATTRS{model}=="Amazon Elastic Block Store", ENV{_EBS_ALIAS_XVD}=="?*", SYMLINK+="$env{_EBS_ALIAS_XVD}%n"
+
+
+# instance-store nvme devices
+KERNEL=="nvme[0-9]*n[0-9]*", ENV{DEVTYPE}=="disk", ATTRS{model}=="Amazon EC2 NVMe Instance Storage", IMPORT{program}="ec2nvme-id -u /dev/%k"
+KERNEL=="nvme[0-9]*n[0-9]*", ENV{DEVTYPE}=="disk", ATTRS{model}=="Amazon EC2 NVMe Instance Storage", ENV{_ISTORE_ALIAS}=="?*", SYMLINK+="$env{_ISTORE_ALIAS}"
+
+# instance-store nvme device partitions
+KERNEL=="nvme[0-9]*n[0-9]*p[0-9]*", ENV{DEVTYPE}=="partition", ATTRS{model}=="Amazon EC2 NVMe Instance Storage", IMPORT{program}="ec2nvme-id -u /dev/%k"
+KERNEL=="nvme[0-9]*n[0-9]*p[0-9]*", ENV{DEVTYPE}=="partition", ATTRS{model}=="Amazon EC2 NVMe Instance Storage", ENV{_ISTORE_ALIAS}=="?*", SYMLINK+="$env{_ISTORE_ALIAS}p%n"

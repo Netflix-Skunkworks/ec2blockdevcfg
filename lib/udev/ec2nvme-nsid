@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if (( $# == 0 )); then
+    exit 1
+fi
+
+# <anything>nvmeXnY<partinfo> -> XnY<partinfo>
+NSID="${1##*nvme?n}"
+# XnY<partinfo> -> X (the namespace id)
+NSID="${NSID:0:1}"
+echo "_NS_ID=${NSID}"
